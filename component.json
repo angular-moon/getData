@@ -1,0 +1,16 @@
+{
+    "version": "1.0.0",
+    "description": "通过本地缓存或http.get获取数据",
+    "name": "getData",
+    "main": "getData.js",
+    "dependencies": [
+        "angular",
+        "store"
+    ],
+    "shim": {
+        "getData.js": {
+            "deps": ["angular"],
+            "exports": "'ng.getdata'"
+        }
+    }
+}
