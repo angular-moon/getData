@@ -31,13 +31,9 @@ angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', fun
         //查找缓存
         if (ttl) {
             var value = store.get(key);
-            console.log("value", value);
-            if(value)
-            console.log("timestamp", new Date().getTime() - value.timestamp, "ttl", ttl * 1000);
-
+          
             //如果命中缓存,切缓存没有失效返回缓存数据
             if (value && (new Date().getTime() - value.timestamp) < ttl * 1000) {
-                console.log("get cache");
                 return $q.when(value.data);
             }
 
@@ -56,7 +52,7 @@ angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', fun
                 //localstroge容量可能满了, 清空所有缓存数据
                 store.clear();
             }
-            console.log("get $http");
+
             return response.data;
         });
     }
