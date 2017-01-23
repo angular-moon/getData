@@ -10,6 +10,8 @@ var store = require('store');
  */
 angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
 
+    var promise = null;
+
     return function (url, params, ttl, config) {
 
         //参数处理, 接受 function(url, ttl, config)的调用
@@ -42,19 +44,36 @@ angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', fun
             store.remove(key);
         }
 
-        return $http.get(url, config).then(function (response) {
-            try {
-                //如果启用了缓存, 把数据保存到缓存中
-                if (ttl) {
-                    store.set(key, {timestamp: new Date().getTime(), data: response.data})
-                }
-            } catch (e) {
-                //localstroge容量可能满了, 清空所有缓存数据
-                store.clear();
-            }
+        if(!promise){
 
-            return response.data;
-        });
+            promise = $http.get(url, config).then(
+
+            function (response) {
+                try {
+                    //如果启用了缓存, 把数据保存到缓存中
+                    if (ttl) {
+                        store.set(key, {timestamp: new Date().getTime(), data: response.data})
+                    }
+                } catch (e) {
+                    //localstroge容量可能满了, 清空所有缓存数据
+                    store.clear();
+                }
+
+                return response.data;
+
+            },
+
+            function(reason){
+
+                //请求失败处理, 让下一次请求重新发起
+                promise = null;
+
+                //继续抛出错误
+                return $q.reject(reason);
+            });
+        }
+
+        return promise;
     }
 }]);
 
