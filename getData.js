@@ -60,7 +60,6 @@ angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', fun
                 }
 
                 return response.data;
-
             },
 
             function(reason){
