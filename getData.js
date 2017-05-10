@@ -1,5 +1,7 @@
 var store = require('store');
 
+var ngGetData = angular.module('ng.getdata', []);
+
 /**
  * 获取数据, 根据存活时间读取已缓存的数据或从服务器端获取
  * @param url {String} 请求url
@@ -8,7 +10,7 @@ var store = require('store');
  * @param config {Object} httpConfig
  * @returns {Promise}
  */
-angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
+ngGetData.factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
 
     var promise = null;
 
@@ -33,7 +35,7 @@ angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', fun
         //查找缓存
         if (ttl) {
             var value = store.get(key);
-          
+
             //如果命中缓存,切缓存没有失效返回缓存数据
             if (value && (new Date().getTime() - value.timestamp) < ttl * 1000) {
                 return $q.when(value.data);
@@ -75,6 +77,30 @@ angular.module('ng.getdata', []).factory('getDataWithCache', ['$q', '$http', fun
         return promise;
     }
 }]);
+
+/**
+ * $http.get 语法糖
+ * @param url {String} 请求url
+ * @param params {Object} 请求参数
+ * @param cache {boolean} 是否使用缓存, 默认为 false
+ * @returns {Promise}
+ */
+ngGetData.factory('getData', function($http){
+
+    return function(api, params, cache){
+        var config = {};
+        if(params)
+            config = {"params": params};
+        if(cache)
+            config.cache = true;
+        else
+            config.cache = false;
+
+        return $http.get(api, config).then(function(response){
+            return response.data;
+        });
+    }
+})
 
 function sortedKeys(obj) {
     var keys = [];
