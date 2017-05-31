@@ -85,7 +85,7 @@ ngGetData.factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
  * @param cache {boolean} 是否使用缓存, 默认为 false
  * @returns {Promise}
  */
-ngGetData.factory('getData', function($http){
+ngGetData.factory('getData', ['$http', function($http){
 
     return function(api, params, cache){
         var config = {};
@@ -100,7 +100,7 @@ ngGetData.factory('getData', function($http){
             return response.data;
         });
     }
-})
+}]);
 
 function sortedKeys(obj) {
     var keys = [];
