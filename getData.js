@@ -12,7 +12,6 @@ var ngGetData = angular.module('ng.getdata', []);
  */
 ngGetData.factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
 
-    var promise = null;
 
     return function (url, params, ttl, config) {
 
@@ -36,7 +35,7 @@ ngGetData.factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
         if (ttl) {
             var value = store.get(key);
 
-            //如果命中缓存,切缓存没有失效返回缓存数据
+            //如果命中缓存, 且缓存没有失效返回缓存数据
             if (value && (new Date().getTime() - value.timestamp) < ttl * 1000) {
                 return $q.when(value.data);
             }
@@ -46,35 +45,23 @@ ngGetData.factory('getDataWithCache', ['$q', '$http', function ($q, $http) {
             store.remove(key);
         }
 
-        if(!promise){
+    
+       return $http.get(url, config).then(
 
-            promise = $http.get(url, config).then(
+        function (response) {
+          try {
+              //如果启用了缓存, 把数据保存到缓存中
+              if (ttl) {
+                  store.set(key, {timestamp: new Date().getTime(), data: response.data})
+              }
+          } catch (e) {
+              //localstroge容量可能满了, 清空所有缓存数据
+              store.clear();
+          }
 
-            function (response) {
-                try {
-                    //如果启用了缓存, 把数据保存到缓存中
-                    if (ttl) {
-                        store.set(key, {timestamp: new Date().getTime(), data: response.data})
-                    }
-                } catch (e) {
-                    //localstroge容量可能满了, 清空所有缓存数据
-                    store.clear();
-                }
-
-                return response.data;
-            },
-
-            function(reason){
-
-                //请求失败处理, 让下一次请求重新发起
-                promise = null;
-
-                //继续抛出错误
-                return $q.reject(reason);
-            });
-        }
-
-        return promise;
+          return response.data;
+      });
+       
     }
 }]);
 
